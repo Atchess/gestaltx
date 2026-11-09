@@ -18,7 +18,7 @@ A MobileGestalt editor for iPhone and iPad. Developed by [huamidev](https://gith
 | Category | Presets and tools |
 | --- | --- |
 | Display | Dynamic Island capability and layout, Always-On Display, AOD Vibrancy, Liquid Glass low-power rendering |
-| Device | Model name, boot/shutdown chime, charge limit, tap to wake, Camera Control settings, Action Button settings, build-specific FaceTime Audio preset |
+| Device | Model name, boot/shutdown chime, charge limit, tap to wake, Camera Control settings, Action Button settings, experimental removal of mainland China restrictions (eSIM, FaceTime Audio on 27.3) |
 | iPad | Apple Pencil settings, Stage Manager capability, iPad app compatibility |
 | Intelligence | Independent region-code options, Apple Intelligence capability flag, and sales-region options for activation attempts on China-mainland devices |
 | Advanced | Apple internal feature flags, internal storage view, Security Research Device flag |
@@ -41,9 +41,9 @@ Supports **iOS / iPadOS 27.x**. **iOS / iPadOS 26.x is not supported for on-devi
 
 Signing requires a certificate and provisioning profile with at least one usable App Group. GestaltX detects the signed App Group at runtime.
 
-## FaceTime Audio
+## Mainland China restrictions
 
-Device → Presets includes a FaceTime Audio option for **iPhone 17 Pro (iPhone18,1), iOS 27.3 / 24C5037i**. It validates the model, build and cache layout before staging the two cache flags. Review the before/after values, apply, and restart the iPhone. The matching device owner confirmed FaceTime Audio works after applying the changes.
+Device → Presets → **Remove Mainland China Restrictions** attempts to enable eSIM, FaceTime Audio (27.3), and other region-restricted features without changing the sales region. Hardware and carrier support are still required; this does not guarantee every feature will work. There is no model or OS version allowlist. The cache layout and target values must match before the two flags can be edited. Review the changes, apply, and restart the device.
 
 On-device original values are saved before applying. Use **Revert** to restore only these two flags, including after reopening the app. Previously modified devices use their earliest recorded values, not an assumed factory default.
 

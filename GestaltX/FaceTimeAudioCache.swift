@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Verified profile: iPhone18,1 / 24C5037i. Offsets are relative to decoded CacheData.
+// Offsets are relative to decoded CacheData and require the matching layout UUID.
 import Foundation
 
 enum FaceTimeAudioChoice: Int, CaseIterable, Identifiable {
@@ -22,7 +22,7 @@ struct FaceTimeAudioFlags: Equatable, Codable, Sendable {
     static let restricted = Self(greenTea: true, notGreenTea: false)
 }
 
-// Bind saved values to their verified layout; never reuse offsets across builds.
+// Bind saved values to the cache layout; model and OS version are metadata only.
 struct FaceTimeAudioOriginal: Codable, Equatable, Sendable {
     let productType: String
     let build: String
@@ -31,18 +31,15 @@ struct FaceTimeAudioOriginal: Codable, Equatable, Sendable {
 
     init(document: GestaltDocument) throws {
         flags = try FaceTimeAudioCache.flags(in: document)
-        // flags(in:) has validated these exact profile identifiers.
-        productType = FaceTimeAudioCache.productType
-        build = FaceTimeAudioCache.build
-        layoutUUID = FaceTimeAudioCache.layoutUUID
+        productType = document.extra[GestaltKeys.productType] as? String ?? ""
+        build = document.root["CacheVersion"] as? String ?? ""
+        layoutUUID = document.root["CacheUUID"] as? String ?? ""
     }
 
     func flags(in document: GestaltDocument) throws -> FaceTimeAudioFlags {
         _ = try FaceTimeAudioCache.validatedData(in: document)
-        guard document.extra[GestaltKeys.productType] as? String == productType,
-              document.root["CacheVersion"] as? String == build,
-              document.root["CacheUUID"] as? String == layoutUUID else {
-            throw GestaltFailure("The FaceTime Audio cache layout or values do not match the verified profile.")
+        guard document.root["CacheUUID"] as? String == layoutUUID else {
+            throw GestaltFailure("The cache layout or values do not match this preset.")
         }
         return flags
     }
@@ -57,8 +54,6 @@ struct CachedBooleanChange: Identifiable {
 }
 
 enum FaceTimeAudioCache {
-    static let productType = "iPhone18,1"
-    static let build = "24C5037i"
     static let layoutUUID = "7F1DF278-18B7-4E5A-8425-09E8830DE9AF"
     static let greenTeaOffset = 0xBF8
     static let notGreenTeaOffset = 0xFD0
@@ -66,10 +61,6 @@ enum FaceTimeAudioCache {
     static let notGreenTeaKey = "4snMZS8LJkSctKypt2m+xA"
 
     static func validatedData(in document: GestaltDocument) throws -> Data {
-        guard document.extra[GestaltKeys.productType] as? String == productType,
-              document.root["CacheVersion"] as? String == build else {
-            throw GestaltFailure("FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).")
-        }
         guard document.root["CacheUUID"] as? String == layoutUUID,
               let data = document.root["CacheData"] as? Data, data.count == 6480,
               data[0x17FF] == 1, data[0x187A] == 1,
@@ -77,7 +68,7 @@ enum FaceTimeAudioCache {
                   data[offset] <= 1 && data[(offset + 1)..<(offset + 8)].allSatisfy { $0 == 0 }
               }),
               [greenTeaKey, notGreenTeaKey, "green-tea", "not-green-tea"].allSatisfy({ document.extra[$0] == nil }) else {
-            throw GestaltFailure("The FaceTime Audio cache layout or values do not match the verified profile.")
+            throw GestaltFailure("The cache layout or values do not match this preset.")
         }
         return data
     }
@@ -107,7 +98,7 @@ enum FaceTimeAudioCache {
         guard before.indices.allSatisfy({ index in
             index == greenTeaOffset || index == notGreenTeaOffset || before[index] == after[index]
         }) else {
-            throw GestaltFailure("The FaceTime Audio edit changes unrelated cache bytes.")
+            throw GestaltFailure("This preset changes unrelated cache bytes.")
         }
     }
 }

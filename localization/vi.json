@@ -288,9 +288,9 @@
   "Original values snapshot": "Ảnh chụp các giá trị gốc",
   "Revert": "Hoàn nguyên",
   "Original values restored.": "Đã khôi phục các giá trị gốc.",
-  "FaceTime Audio": "Âm thanh FaceTime",
-  "FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).": "Tùy chọn này hỗ trợ iPhone 17 Pro chạy iOS 27.3 (24C5037i).",
-  "The FaceTime Audio cache layout or values do not match the verified profile.": "Bố cục hoặc giá trị bộ nhớ đệm âm thanh FaceTime không khớp cấu hình đã xác minh.",
-  "The FaceTime Audio edit changes unrelated cache bytes.": "Thay đổi âm thanh FaceTime chứa các byte bộ nhớ đệm không liên quan.",
-  "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call.": "Đã ghi và xác minh các cờ âm thanh FaceTime. Hãy khởi động lại iPhone, rồi thử cuộc gọi âm thanh."
+  "Remove Mainland China Restrictions": "Gỡ giới hạn máy Trung Quốc đại lục",
+  "Try enabling eSIM, FaceTime Audio (27.3), and other region-restricted features. Hardware and carrier support are required. Restart after applying.": "Thử bật eSIM, âm thanh FaceTime (27.3) và các tính năng bị giới hạn theo khu vực. Vẫn cần phần cứng và nhà mạng hỗ trợ. Khởi động lại sau khi áp dụng.",
+  "The cache layout or values do not match this preset.": "Bố cục hoặc giá trị bộ nhớ đệm không khớp với tùy chọn này.",
+  "This preset changes unrelated cache bytes.": "Tùy chọn này thay đổi các byte bộ nhớ đệm không liên quan.",
+  "Region restriction flags written and verified. Restart the device to apply.": "Đã ghi và xác minh các cờ giới hạn khu vực. Khởi động lại thiết bị để áp dụng."
 }

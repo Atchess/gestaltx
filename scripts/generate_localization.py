@@ -297,11 +297,11 @@ Respring did not finish.	注销未完成。
 Refreshing SpringBoard…	正在刷新 SpringBoard…
 This OS build may not support the technique. You can close this screen and try a manual restart later.	当前系统版本可能不支持此方法。你可以关闭此页面，稍后手动重新启动设备。
 Your device may briefly return to the Lock Screen.	设备可能会短暂返回锁定屏幕。
-FaceTime Audio	FaceTime 音频
-FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).	此选项支持运行 iOS 27.3（24C5037i）的 iPhone 17 Pro。
-The FaceTime Audio cache layout or values do not match the verified profile.	FaceTime 音频缓存的布局或数值与已验证配置不符。
-The FaceTime Audio edit changes unrelated cache bytes.	FaceTime 音频更改包含无关的缓存字节。
-FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call.	FaceTime 音频标记已写入并验证。请重新启动 iPhone，再测试音频通话。
+Remove Mainland China Restrictions	解除国行限制
+Try enabling eSIM, FaceTime Audio (27.3), and other region-restricted features. Hardware and carrier support are required. Restart after applying.	尝试解除 eSIM、FaceTime 音频（27.3）等功能限制，仍需硬件和运营商支持。应用后请重启。
+The cache layout or values do not match this preset.	缓存布局或数值与此预设不符。
+This preset changes unrelated cache bytes.	此预设更改了无关的缓存字节。
+Region restriction flags written and verified. Restart the device to apply.	地区限制标记已写入并验证，请重启设备使其生效。
 '''
 entries = {}
 for line in TRANSLATIONS.strip().splitlines():

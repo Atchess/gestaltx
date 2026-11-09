@@ -263,7 +263,7 @@ struct FaceTimeAudioPresetRow: View {
         switch support {
         case .success:
             VStack(alignment: .leading, spacing: 8) {
-                Picker(L("FaceTime Audio"), selection: Binding(
+                Picker(L("Remove Mainland China Restrictions"), selection: Binding(
                     get: { model.faceTimeAudioChoice },
                     set: { model.stageFaceTimeAudio($0) }
                 )) {
@@ -273,10 +273,9 @@ struct FaceTimeAudioPresetRow: View {
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier("facetime-audio-choice")
+                Text(L("Try enabling eSIM, FaceTime Audio (27.3), and other region-restricted features. Hardware and carrier support are required. Restart after applying."))
+                    .font(.caption).foregroundStyle(.secondary)
                 HStack(alignment: .firstTextBaseline) {
-                    if model.faceTimeAudioChoice != .keep {
-                        Text(L("A device restart may be required.")).font(.caption).foregroundStyle(.secondary)
-                    }
                     Spacer(minLength: 8)
                     Button(L("Revert")) { Task { await model.restoreFaceTimeAudio() } }
                         .font(.caption).buttonStyle(.borderless)
@@ -286,7 +285,7 @@ struct FaceTimeAudioPresetRow: View {
             }
         case .failure(let error):
             VStack(alignment: .leading, spacing: 4) {
-                LabeledContent(L("FaceTime Audio")) { Text(L("Unsupported")).foregroundStyle(.secondary) }
+                LabeledContent(L("Remove Mainland China Restrictions")) { Text(L("Unsupported")).foregroundStyle(.secondary) }
                 Text(error.localizedDescription).font(.caption).foregroundStyle(.secondary)
             }
         }

@@ -152,7 +152,7 @@ final class GestaltManager: ObservableObject {
                 result = try await files.commit(restored, expected: before)
                 needsRespring = result.source == .device
                 message = L(result.source == .device
-                            ? "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call."
+                            ? "Region restriction flags written and verified. Restart the device to apply."
                             : "Local changes saved. Export the plist to keep a copy.")
             }
             snapshot = result
@@ -324,7 +324,7 @@ final class GestaltManager: ObservableObject {
             status = result.source == .device ? "Changes verified on device" : "Local changes saved"
             let changedFaceTimeAudio = !FaceTimeAudioCache.changes(from: snapshot.document, to: edited).isEmpty
             message = L(result.source == .device
-                        ? (changedFaceTimeAudio ? "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call." : "Write verified. Some features require a device restart.")
+                        ? (changedFaceTimeAudio ? "Region restriction flags written and verified. Restart the device to apply." : "Write verified. Some features require a device restart.")
                         : "Local changes saved. Export the plist to keep a copy.")
             log(L(status)); await reloadBackups()
         } catch { failed(error); await reloadBackups() }

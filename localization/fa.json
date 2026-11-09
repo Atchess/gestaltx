@@ -288,9 +288,9 @@
   "Original values snapshot": "نسخه‌ای از مقادیر اصلی",
   "Revert": "بازگردانی",
   "Original values restored.": "مقادیر اصلی بازگردانده شدند.",
-  "FaceTime Audio": "صدای FaceTime",
-  "FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).": "این گزینه از iPhone 17 Pro با iOS 27.3 (24C5037i) پشتیبانی می‌کند.",
-  "The FaceTime Audio cache layout or values do not match the verified profile.": "چیدمان یا مقادیر حافظهٔ نهان صدای FaceTime با نمایهٔ تأییدشده مطابقت ندارد.",
-  "The FaceTime Audio edit changes unrelated cache bytes.": "تغییر صدای FaceTime بایت‌های نامرتبط حافظهٔ نهان را تغییر می‌دهد.",
-  "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call.": "پرچم‌های صدای FaceTime نوشته و تأیید شدند. آیفون را راه‌اندازی مجدد و تماس صوتی را آزمایش کنید."
+  "Remove Mainland China Restrictions": "رفع محدودیت دستگاه‌های چین",
+  "Try enabling eSIM, FaceTime Audio (27.3), and other region-restricted features. Hardware and carrier support are required. Restart after applying.": "تلاش برای فعال‌سازی eSIM، تماس صوتی FaceTime (27.3) و دیگر قابلیت‌های محدودشده بر اساس منطقه. پشتیبانی سخت‌افزار و اپراتور لازم است. پس از اعمال، دستگاه را راه‌اندازی مجدد کنید.",
+  "The cache layout or values do not match this preset.": "ساختار یا مقادیر حافظهٔ نهان با این تنظیم مطابقت ندارد.",
+  "This preset changes unrelated cache bytes.": "این تنظیم بایت‌های نامرتبط حافظهٔ نهان را تغییر می‌دهد.",
+  "Region restriction flags written and verified. Restart the device to apply.": "پرچم‌های محدودیت منطقه نوشته و تأیید شدند. برای اعمال، دستگاه را راه‌اندازی مجدد کنید."
 }

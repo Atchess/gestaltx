@@ -87,13 +87,25 @@ final class AccessTrace: @unchecked Sendable {
         }
         let original = try document(fixture)
         let enabled = try verifyOnlyTargetBytes(original)
-        for (key, value) in [("CacheVersion", "24C9999"), ("CacheUUID", "different-layout")] {
-            var invalid = fixture; invalid[key] = value
-            try expectThrows("Reject a different " + key) { var doc = try document(invalid); try doc.setFaceTimeAudio(.enabled) }
+        var invalidLayout = fixture; invalidLayout["CacheUUID"] = "different-layout"
+        try expectThrows("Reject a different cache layout") { var doc = try document(invalidLayout); try doc.setFaceTimeAudio(.enabled) }
+        for version in ["24C9999", "another-build", ""] {
+            var alternate = fixture; alternate["CacheVersion"] = version
+            alternate["CacheExtra"] = [GestaltKeys.productType: "another-model"]
+            let alternateDocument = try document(alternate)
+            var edited = alternateDocument
+            try edited.setFaceTimeAudio(.enabled)
+            try FaceTimeAudioCache.validateEdit(from: alternateDocument, to: edited)
+            try expect(FaceTimeAudioCache.flags(in: edited) == .enabled, "Matching layouts are accepted regardless of model and build")
+            let saved = try FaceTimeAudioOriginal(document: alternateDocument)
+            try expect(saved.flags(in: original) == .restricted, "Restoration uses layout identity, not model or OS version")
         }
-        var wrongModel = fixture
-        wrongModel["CacheExtra"] = [GestaltKeys.productType: "iPhone18,2"]
-        try expectThrows("Reject an unverified model") { var doc = try document(wrongModel); try doc.setFaceTimeAudio(.enabled) }
+        var noVersion = fixture; noVersion.removeValue(forKey: "CacheVersion")
+        noVersion["CacheExtra"] = [String: Any]()
+        var noMetadata = try document(noVersion)
+        let noMetadataOriginal = try FaceTimeAudioOriginal(document: noMetadata)
+        try noMetadata.setFaceTimeAudio(.enabled)
+        try expect(noMetadataOriginal.flags(in: noMetadata) == .restricted, "Missing model/build metadata does not block edit or restore")
         for (offset, value) in [(0x17FF, UInt8(0)), (0x187A, 0), (0xBF8, 2), (0xFD1, 1)] {
             var invalid = fixture; var bytes = cache; bytes[offset] = value; invalid["CacheData"] = bytes
             try expectThrows("Reject invalid flags, validity or slot padding") { var doc = try document(invalid); try doc.setFaceTimeAudio(.enabled) }
@@ -109,9 +121,8 @@ final class AccessTrace: @unchecked Sendable {
             try FaceTimeAudioCache.validateEdit(from: original, to: document(tampered))
         }
         var changedModel = enabled; changedModel.set("iPhone18,2", for: GestaltKeys.productType)
-        try expectThrows("Revalidate the profile after other staged field edits") {
-            try FaceTimeAudioCache.validateEdit(from: original, to: changedModel)
-        }
+        try FaceTimeAudioCache.validateEdit(from: original, to: changedModel)
+        try expect(changedModel.extra[GestaltKeys.productType] as? String == "iPhone18,2", "A staged model change no longer blocks cache edits")
         var pending = enabled
         pending.set("pending", for: "unrelated-pending")
         let baseline = DocumentSnapshot(data: try original.encoded(), document: original, source: .local, name: "fixture")
