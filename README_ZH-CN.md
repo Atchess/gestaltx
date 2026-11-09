@@ -18,7 +18,7 @@
 | 分类 | 预设与工具 |
 | --- | --- |
 | 显示 | 灵动岛功能标记与布局、全天候显示、AOD 色彩、液态玻璃低性能渲染 |
-| 设备 | 机型名称、开关机提示音、充电上限、轻点唤醒、相机控制设置、操作按钮设置 |
+| 设备 | 机型名称、开关机提示音、充电上限、轻点唤醒、相机控制设置、操作按钮设置、指定构建的 FaceTime Audio 预设 |
 | iPad | Apple Pencil 设置、台前调度功能标记、iPad 应用兼容性 |
 | 智能 | 独立的地区代码选项、Apple 智能功能标记及销售地区选项；国行设备可尝试开启 AI |
 | 高级 | Apple 内部功能标记、内部存储视图、安全研究设备标记 |
@@ -40,6 +40,12 @@
 支持 **iOS / iPadOS 27.x**。**iOS / iPadOS 26.x 不支持本机 MobileGestalt 访问。** 基于 [worse_query](https://github.com/forcequitOS/worse_query)。SystemGroup 访问需要 iOS 27，功能可用性因设备与系统而异，同时支持本地 plist 编辑。
 
 签名所用的证书及描述文件必须提供至少一个可用的 App Group。GestaltX 会在运行时读取实际签名中的 App Group，以兼容重签。
+
+## FaceTime Audio
+
+“设备” → “预设”中提供适配 **iPhone 17 Pro（iPhone18,1），iOS 27.3 / 24C5037i** 的 FaceTime Audio 选项。暂存前会核对机型、构建及缓存布局，再修改两个缓存标记。查看更改前后的值，应用后重新启动 iPhone。匹配设备的用户已确认修改后 FaceTime 音频可用。
+
+详见[配置、分析依据和测试](docs/FACETIME_AUDIO.md)。原始思路来自 [KirbySD 的 V2EX 帖子](https://www.v2ex.com/t/1246550)。
 
 ## 语言支持
 
