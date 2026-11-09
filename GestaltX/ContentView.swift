@@ -72,8 +72,11 @@ struct ContentView: View {
                 selectedTab = tab
             }
             if arguments.contains("--preview-review") {
-                model.choices["pencil"] = .enable
+                if !arguments.contains("--preview-facetime-audio") { model.choices["pencil"] = .enable }
                 showsChanges = true
+            }
+            if arguments.contains("--preview-facetime-audio") {
+                model.stageFaceTimeAudio(.enable)
             }
             if let flag = arguments.firstIndex(of: "--preview-category"), arguments.indices.contains(flag + 1) {
                 previewCategory = CapabilityCategory(rawValue: arguments[flag + 1])
@@ -231,6 +234,7 @@ struct CategoryView: View {
                     }
                     }
                 }
+                if category == .device { FaceTimeAudioPresetRow() }
             } header: {
                 Text(L("Presets"))
             }
@@ -242,6 +246,38 @@ struct CategoryView: View {
             }
         }
         .navigationTitle(L(category.rawValue)).disabled(model.isBusy)
+    }
+}
+
+struct FaceTimeAudioPresetRow: View {
+    @EnvironmentObject private var model: GestaltManager
+
+    private var support: Result<FaceTimeAudioFlags, Error> {
+        Result {
+            guard let document = model.preview else { throw GestaltFailure("Load a document first.") }
+            return try FaceTimeAudioCache.flags(in: document)
+        }
+    }
+
+    var body: some View {
+        switch support {
+        case .success:
+            Picker("FaceTime Audio", selection: Binding(
+                get: { model.faceTimeAudioChoice },
+                set: { model.stageFaceTimeAudio($0) }
+            )) {
+                ForEach(FaceTimeAudioChoice.allCases) { choice in
+                    Text(choice.title).tag(choice)
+                }
+            }
+            .pickerStyle(.menu)
+            .accessibilityIdentifier("facetime-audio-choice")
+        case .failure(let error):
+            VStack(alignment: .leading, spacing: 4) {
+                LabeledContent("FaceTime Audio") { Text("Unsupported").foregroundStyle(.secondary) }
+                Text(error.localizedDescription).font(.caption).foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
@@ -370,6 +406,14 @@ struct ChangeReviewView: View {
                     if let capability = Capability.all.first(where: { $0.keys.contains(key) }) {
                         Text(L(capability.effectHint)).font(.caption).foregroundStyle(.secondary)
                     }
+                }
+            }
+            ForEach(model.cacheDataChanges) { change in
+                Section {
+                    Text(verbatim: "CacheData · \(change.name)")
+                        .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                    valueRow("Before", value: NSNumber(value: change.before))
+                    valueRow("After", value: NSNumber(value: change.after))
                 }
             }
             Section {

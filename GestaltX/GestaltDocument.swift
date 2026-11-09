@@ -106,6 +106,21 @@ struct GestaltDocument: @unchecked Sendable {
         root["CacheExtra"] = updated
     }
 
+    mutating func setFaceTimeAudio(_ flags: FaceTimeAudioFlags) throws {
+        var data = try FaceTimeAudioCache.validatedData(in: self)
+        data[FaceTimeAudioCache.greenTeaOffset] = flags.greenTea ? 1 : 0
+        data[FaceTimeAudioCache.notGreenTeaOffset] = flags.notGreenTea ? 1 : 0
+        root["CacheData"] = data
+    }
+
+    mutating func preservePendingCacheData(_ pending: Self, comparedTo original: Self) {
+        // Restoring an unrelated CacheExtra preset must retain staged cache edits.
+        // The complete edit is validated again by GestaltFileStore before writing.
+        if pending.root["CacheData"] as? Data != original.root["CacheData"] as? Data {
+            root["CacheData"] = pending.root["CacheData"]
+        }
+    }
+
     mutating func applyRegion(code: String, salesSuffix: String? = nil) {
         set(code, for: GestaltKeys.regionCode)
         // A code-only edit must leave both sales-region suffix fields untouched.
@@ -201,6 +216,7 @@ struct DocumentSnapshot: @unchecked Sendable {
     func rebasingPendingEdits(_ pending: GestaltDocument, onto updated: GestaltDocument,
                               excluding keys: Set<String>) -> GestaltDocument {
         var result = updated
+        result.preservePendingCacheData(pending, comparedTo: document)
         let before = document.extra, staged = pending.extra
         for key in Set(before.keys).union(staged.keys) where !keys.contains(key) {
             switch (before[key], staged[key]) {
@@ -389,6 +405,7 @@ actor GestaltFileStore {
 
     func commit(_ edited: GestaltDocument, expected: DocumentSnapshot, restoring record: BackupRecord? = nil,
                 originallyAbsentKeys: Set<String> = []) throws -> DocumentSnapshot {
+        if record == nil { try FaceTimeAudioCache.validateEdit(from: expected.document, to: edited) }
         guard originallyAbsentKeys.allSatisfy({ edited.extra[$0] == nil }) else {
             throw GestaltFailure("The selected added fields must be removed before applying.")
         }

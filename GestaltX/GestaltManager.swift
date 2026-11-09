@@ -22,6 +22,7 @@ final class GestaltManager: ObservableObject {
     @Published var changesName = false
     @Published var modelName = ""
     @Published var subtype = 0
+    @Published private(set) var faceTimeAudioChoice: FaceTimeAudioChoice = .keep
     private let files: GestaltFileStore
     private var exploitLogObserver: NSObjectProtocol?
 
@@ -69,7 +70,11 @@ final class GestaltManager: ObservableObject {
             }
         }.sorted()
     }
-    var changeCount: Int { changeKeys.count }
+    var cacheDataChanges: [CachedBooleanChange] {
+        guard let original = snapshot?.document, let edited = preview else { return [] }
+        return FaceTimeAudioCache.changes(from: original, to: edited)
+    }
+    var changeCount: Int { changeKeys.count + cacheDataChanges.count }
     var hasDocument: Bool { snapshot != nil }
     var sourceIsDevice: Bool { snapshot?.source == .device }
     var displayedName: String {
@@ -103,10 +108,26 @@ final class GestaltManager: ObservableObject {
     private func accept(_ loaded: DocumentSnapshot) {
         snapshot = loaded; working = loaded.document
         choices = [:]; regionID = "keep"; regionCodeID = "keep"; changesName = false; subtype = 0
+        faceTimeAudioChoice = .keep
         modelName = loaded.document.artwork["ArtworkDeviceProductDescription"] as? String ?? ""
     }
     func clearStaged() {
         if let snapshot { accept(snapshot) }
+    }
+
+    func stageFaceTimeAudio(_ choice: FaceTimeAudioChoice) {
+        guard var document = working, let original = snapshot?.document else { return }
+        do {
+            let flags: FaceTimeAudioFlags
+            switch choice {
+            case .keep: flags = try FaceTimeAudioCache.flags(in: original)
+            case .enable: flags = .enabled
+            case .restoreRestriction: flags = .restricted
+            }
+            try document.setFaceTimeAudio(flags)
+            working = document
+            faceTimeAudioChoice = choice
+        } catch { failed(error) }
     }
 
     func canRestore(_ capability: Capability) -> Bool {
@@ -192,6 +213,13 @@ final class GestaltManager: ObservableObject {
         return lines
     }
 
+    private func logChanges(from original: GestaltDocument, to edited: GestaltDocument, prefix: String) {
+        for line in diffLines(original.root, edited.root) { log(prefix + line) }
+        for change in FaceTimeAudioCache.changes(from: original, to: edited) {
+            log(prefix + "CacheData.\(change.name) @\(String(format: "0x%X", change.offset)): \(change.before) → \(change.after)")
+        }
+    }
+
     func connect(showErrorAlert: Bool = true) async {
         guard !isBusy else { return }
         isBusy = true; status = "Checking device access…"
@@ -256,12 +284,15 @@ final class GestaltManager: ObservableObject {
         defer { isBusy = false }
         do {
             log("[apply] source=\(snapshot.source.rawValue) fields=\(changeCount)")
-            for line in diffLines(snapshot.document.extra, edited.extra) { log("[diff] " + line) }
+            logChanges(from: snapshot.document, to: edited, prefix: "[diff] ")
             let absentKeys = Set(Capability.all.filter { choices[$0.id] == .removeAdded }.flatMap(\.keys))
             let result = try await files.commit(edited, expected: snapshot, originallyAbsentKeys: absentKeys)
             accept(result); needsRespring = result.source == .device
             status = result.source == .device ? "Changes verified on device" : "Local changes saved"
-            message = L(result.source == .device ? "Write verified. Some features require a device restart." : "Local changes saved. Export the plist to keep a copy.")
+            let changedFaceTimeAudio = !FaceTimeAudioCache.changes(from: snapshot.document, to: edited).isEmpty
+            message = L(result.source == .device
+                        ? (changedFaceTimeAudio ? "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call." : "Write verified. Some features require a device restart.")
+                        : "Local changes saved. Export the plist to keep a copy.")
             log(L(status)); await reloadBackups()
         } catch { failed(error); await reloadBackups() }
     }
@@ -282,7 +313,7 @@ final class GestaltManager: ObservableObject {
             let data = try await files.backupData(record)
             let restored = try GestaltDocument(data: data)
             log("[restore] \(record.filename) · \(record.byteCount) bytes · reason=\(record.reason)")
-            for line in diffLines(snapshot.document.extra, restored.extra) { log("[restore-diff] " + line) }
+            logChanges(from: snapshot.document, to: restored, prefix: "[restore-diff] ")
             let result = try await files.commit(restored, expected: snapshot, restoring: record)
             accept(result); needsRespring = result.source == .device
             message = L(result.source == .device ? "Backup restored and verified." : "Backup opened as a local document.")

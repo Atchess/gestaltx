@@ -18,7 +18,7 @@ A MobileGestalt editor for iPhone and iPad. Developed by [huamidev](https://gith
 | Category | Presets and tools |
 | --- | --- |
 | Display | Dynamic Island capability and layout, Always-On Display, AOD Vibrancy, Liquid Glass low-power rendering |
-| Device | Model name, boot/shutdown chime, charge limit, tap to wake, Camera Control settings, Action Button settings |
+| Device | Model name, boot/shutdown chime, charge limit, tap to wake, Camera Control settings, Action Button settings, build-specific FaceTime Audio preset |
 | iPad | Apple Pencil settings, Stage Manager capability, iPad app compatibility |
 | Intelligence | Independent region-code options, Apple Intelligence capability flag, and sales-region options for activation attempts on China-mainland devices |
 | Advanced | Apple internal feature flags, internal storage view, Security Research Device flag |
@@ -40,6 +40,12 @@ Presets modify capability flags; actual effects depend on the device and OS. Chi
 Supports **iOS / iPadOS 27.x**. **iOS / iPadOS 26.x is not supported for on-device MobileGestalt access.** Powered by [worse_query](https://github.com/forcequitOS/worse_query). SystemGroup access requires iOS 27; available features depend on the device and OS. Local plist editing is also supported.
 
 Signing requires a certificate and provisioning profile with at least one usable App Group. GestaltX detects the signed App Group at runtime.
+
+## FaceTime Audio
+
+Device → Presets includes a FaceTime Audio option for **iPhone 17 Pro (iPhone18,1), iOS 27.3 / 24C5037i**. It validates the model, build and cache layout before staging the two cache flags. Review the before/after values, apply, and restart the iPhone. The matching device owner confirmed FaceTime Audio works after applying the changes.
+
+See [profile details, analysis and tests](docs/FACETIME_AUDIO.md). Original idea: [KirbySD's V2EX post](https://www.v2ex.com/t/1246550).
 
 ## Language support
 

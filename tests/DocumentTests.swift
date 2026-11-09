@@ -47,11 +47,115 @@ final class AccessTrace: @unchecked Sendable {
         }
     }
 
+    static func verifyFaceTimeAudio(in root: URL) async throws {
+        var cache = Data(repeating: 0, count: 6480)
+        cache[0xBF8] = 1
+        cache[0x17FF] = 1
+        cache[0x187A] = 1
+        cache[17] = 93 // An unrelated byte must survive every operation.
+        let fixture: [String: Any] = [
+            "CacheVersion": "24C5037i", "CacheUUID": "7F1DF278-18B7-4E5A-8425-09E8830DE9AF",
+            "CacheData": cache, "UnchangedTopLevel": ["nested": true],
+            "CacheExtra": [GestaltKeys.productType: "iPhone18,1", GestaltKeys.regionCode: "CH",
+                           GestaltKeys.legacyRegionInfo: "CH/A", "unrelated": Data([1, 2, 3])]
+        ]
+        func document(_ input: [String: Any]) throws -> GestaltDocument {
+            try GestaltDocument(data: PropertyListSerialization.data(fromPropertyList: input, format: .binary, options: 0))
+        }
+        func verifyOnlyTargetBytes(_ original: GestaltDocument) throws -> GestaltDocument {
+            var enabled = original
+            try enabled.setFaceTimeAudio(.enabled)
+            try FaceTimeAudioCache.validateEdit(from: original, to: enabled)
+            let before = original.root["CacheData"] as! Data
+            let after = enabled.root["CacheData"] as! Data
+            let changed = before.indices.filter { before[$0] != after[$0] }
+            try expect(changed == [0xBF8, 0xFD0], "Only the two independently verified bytes change")
+            var expected = original.root
+            var expectedCache = before
+            expectedCache[0xBF8] = 0; expectedCache[0xFD0] = 1
+            expected["CacheData"] = expectedCache
+            try expect(GestaltDocument.valuesEqual(enabled.root, expected), "All other root values, CacheExtra, regions and validity bytes remain intact")
+            try expect(FaceTimeAudioCache.changes(from: original, to: enabled).count == 2, "CacheData-only changes are counted")
+            try expect(FaceTimeAudioCache.flags(in: enabled) == .enabled, "Enabled flags are readable")
+            try expect(try document(expected).matches(GestaltDocument(data: enabled.encoded())), "Cache edit preserves types through binary plist encoding")
+            var repeated = enabled
+            try repeated.setFaceTimeAudio(.enabled)
+            try expect(FaceTimeAudioCache.changes(from: enabled, to: repeated).isEmpty, "Enable is idempotent")
+            try repeated.setFaceTimeAudio(.restricted)
+            try expect(repeated.matches(original), "Restore restriction returns the complete original document")
+            return enabled
+        }
+        let original = try document(fixture)
+        let enabled = try verifyOnlyTargetBytes(original)
+        for (key, value) in [("CacheVersion", "24C9999"), ("CacheUUID", "different-layout")] {
+            var invalid = fixture; invalid[key] = value
+            try expectThrows("Reject a different " + key) { var doc = try document(invalid); try doc.setFaceTimeAudio(.enabled) }
+        }
+        var wrongModel = fixture
+        wrongModel["CacheExtra"] = [GestaltKeys.productType: "iPhone18,2"]
+        try expectThrows("Reject an unverified model") { var doc = try document(wrongModel); try doc.setFaceTimeAudio(.enabled) }
+        for (offset, value) in [(0x17FF, UInt8(0)), (0x187A, 0), (0xBF8, 2), (0xFD1, 1)] {
+            var invalid = fixture; var bytes = cache; bytes[offset] = value; invalid["CacheData"] = bytes
+            try expectThrows("Reject invalid flags, validity or slot padding") { var doc = try document(invalid); try doc.setFaceTimeAudio(.enabled) }
+        }
+        var truncated = fixture; truncated["CacheData"] = Data(cache.dropLast())
+        try expectThrows("Reject a truncated cache") { var doc = try document(truncated); try doc.setFaceTimeAudio(.enabled) }
+        for key in [FaceTimeAudioCache.greenTeaKey, FaceTimeAudioCache.notGreenTeaKey, "green-tea", "not-green-tea"] {
+            var conflicting = original; conflicting.set(false, for: key)
+            try expectThrows("Reject conflicting CacheExtra fields") { try conflicting.setFaceTimeAudio(.enabled) }
+        }
+        var tampered = fixture; var unrelated = cache; unrelated[17] = 94; tampered["CacheData"] = unrelated
+        try expectThrows("Reject changes to unrelated cache bytes at commit validation") {
+            try FaceTimeAudioCache.validateEdit(from: original, to: document(tampered))
+        }
+        var changedModel = enabled; changedModel.set("iPhone18,2", for: GestaltKeys.productType)
+        try expectThrows("Revalidate the profile after other staged field edits") {
+            try FaceTimeAudioCache.validateEdit(from: original, to: changedModel)
+        }
+        var pending = enabled
+        pending.set("pending", for: "unrelated-pending")
+        let baseline = DocumentSnapshot(data: try original.encoded(), document: original, source: .local, name: "fixture")
+        var restoredOtherField = original
+        restoredOtherField.set("restored", for: "other-preset")
+        let rebased = baseline.rebasingPendingEdits(pending, onto: restoredOtherField, excluding: ["other-preset"])
+        try expect(FaceTimeAudioCache.flags(in: rebased) == .enabled, "Restoring an unrelated preset retains staged FaceTime flags")
+        try expect(rebased.extra["unrelated-pending"] as? String == "pending", "Rebase retains other staged fields")
+        try expect(rebased.extra["other-preset"] as? String == "restored", "Rebase retains the just-restored preset")
+        let device = root.appendingPathComponent("facetime-device.plist")
+        let originalBytes = try original.encoded()
+        try originalBytes.write(to: device)
+        let store = GestaltFileStore(deviceURL: device, backupDirectory: root.appendingPathComponent("facetime-backups"),
+                                    deviceID: "facetime-fixture", acquire: { 1 }, release: { _ in })
+        let snapshot = try await store.loadDevice()
+        let committed = try await store.commit(enabled, expected: snapshot)
+        try expect(committed.document.matches(enabled), "CacheData-only write passes full readback verification")
+        let backups = try await store.backups()
+        let writeBackup = backups.first { $0.reason == "Before applying" }!
+        try expect(backups.count == 2, "Initial and pre-write backups are retained")
+        try expect(try await store.backupData(writeBackup) == originalBytes, "Backup retains exact pre-patch bytes")
+        _ = try await store.commit(original, expected: committed, restoring: writeBackup)
+        try expect(try GestaltDocument(data: Data(contentsOf: device)).matches(original), "Owned backup restores the original cache flags")
+        let rejected = try await store.loadDevice()
+        do {
+            _ = try await store.commit(document(tampered), expected: rejected)
+            throw TestFailure(message: "Commit must reject unrelated cache edits")
+        } catch is GestaltFailure {}
+        try expect(try Data(contentsOf: device) == originalBytes, "Rejected cache edits never reach the system writer")
+        if let path = CommandLine.arguments.dropFirst().first {
+            let url = URL(fileURLWithPath: path)
+            let bytes = try Data(contentsOf: url)
+            _ = try verifyOnlyTargetBytes(GestaltDocument(data: bytes))
+            try expect(try Data(contentsOf: url) == bytes, "Actual exported plist remains byte-for-byte untouched")
+        }
+        print("PASS: FaceTime Audio exact-byte edits, profile rejection, unrelated-byte preservation, CacheData-only commit, backup, restore, and read-only export verification.")
+    }
+
     static func main() async throws {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent("GestaltX-tests-" + UUID().uuidString, isDirectory: true)
         try fm.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: root) }
+        try await verifyFaceTimeAudio(in: root)
         let device = root.appendingPathComponent("device.plist")
         let backups = root.appendingPathComponent("backups", isDirectory: true)
         let original: [String: Any] = [
