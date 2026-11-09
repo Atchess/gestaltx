@@ -298,7 +298,6 @@ Refreshing SpringBoard…	正在刷新 SpringBoard…
 This OS build may not support the technique. You can close this screen and try a manual restart later.	当前系统版本可能不支持此方法。你可以关闭此页面，稍后手动重新启动设备。
 Your device may briefly return to the Lock Screen.	设备可能会短暂返回锁定屏幕。
 FaceTime Audio	FaceTime 音频
-Restore Restriction	恢复限制
 FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).	此选项支持运行 iOS 27.3（24C5037i）的 iPhone 17 Pro。
 The FaceTime Audio cache layout or values do not match the verified profile.	FaceTime 音频缓存的布局或数值与已验证配置不符。
 The FaceTime Audio edit changes unrelated cache bytes.	FaceTime 音频更改包含无关的缓存字节。

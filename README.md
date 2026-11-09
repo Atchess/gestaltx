@@ -45,7 +45,9 @@ Signing requires a certificate and provisioning profile with at least one usable
 
 Device → Presets includes a FaceTime Audio option for **iPhone 17 Pro (iPhone18,1), iOS 27.3 / 24C5037i**. It validates the model, build and cache layout before staging the two cache flags. Review the before/after values, apply, and restart the iPhone. The matching device owner confirmed FaceTime Audio works after applying the changes.
 
-See [profile details, analysis and tests](docs/FACETIME_AUDIO.md). Original idea: [KirbySD's V2EX post](https://www.v2ex.com/t/1246550).
+On-device original values are saved before applying. Use **Revert** to restore only these two flags, including after reopening the app. Previously modified devices use their earliest recorded values, not an assumed factory default.
+
+Original idea: [KirbySD's V2EX post](https://www.v2ex.com/t/1246550).
 
 ## Language support
 

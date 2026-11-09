@@ -13296,7 +13296,6 @@
       }
     },
     "FaceTime Audio": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -13310,22 +13309,10 @@
             "value": "FaceTime 音频"
           }
         },
-        "zh-Hant-TW": {
+        "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "FaceTime 音訊"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FaceTime 音訊"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Âm thanh FaceTime"
+            "value": "صدای FaceTime"
           }
         },
         "ru": {
@@ -13334,63 +13321,27 @@
             "value": "Аудиовызовы FaceTime"
           }
         },
-        "fa": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "صدای FaceTime"
-          }
-        }
-      }
-    },
-    "Restore Restriction": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restore Restriction"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "恢复限制"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "恢復限制"
+            "value": "Âm thanh FaceTime"
           }
         },
         "zh-Hant-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "恢復限制"
+            "value": "FaceTime 音訊"
           }
         },
-        "vi": {
+        "zh-Hant-TW": {
           "stringUnit": {
             "state": "translated",
-            "value": "Khôi phục giới hạn"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Восстановить ограничение"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "بازگرداندن محدودیت"
+            "value": "FaceTime 音訊"
           }
         }
       }
     },
     "FaceTime Audio supports iPhone 17 Pro on iOS 27.3 (24C5037i).": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -13404,22 +13355,10 @@
             "value": "此选项支持运行 iOS 27.3（24C5037i）的 iPhone 17 Pro。"
           }
         },
-        "zh-Hant-TW": {
+        "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "此選項支援執行 iOS 27.3（24C5037i）的 iPhone 17 Pro。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此選項支援執行 iOS 27.3（24C5037i）的 iPhone 17 Pro。"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tùy chọn này hỗ trợ iPhone 17 Pro chạy iOS 27.3 (24C5037i)."
+            "value": "این گزینه از iPhone 17 Pro با iOS 27.3 (24C5037i) پشتیبانی می‌کند."
           }
         },
         "ru": {
@@ -13428,16 +13367,27 @@
             "value": "Этот параметр поддерживает iPhone 17 Pro с iOS 27.3 (24C5037i)."
           }
         },
-        "fa": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "این گزینه از iPhone 17 Pro با iOS 27.3 (24C5037i) پشتیبانی می‌کند."
+            "value": "Tùy chọn này hỗ trợ iPhone 17 Pro chạy iOS 27.3 (24C5037i)."
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此選項支援執行 iOS 27.3（24C5037i）的 iPhone 17 Pro。"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此選項支援執行 iOS 27.3（24C5037i）的 iPhone 17 Pro。"
           }
         }
       }
     },
     "The FaceTime Audio cache layout or values do not match the verified profile.": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -13451,22 +13401,10 @@
             "value": "FaceTime 音频缓存的布局或数值与已验证配置不符。"
           }
         },
-        "zh-Hant-TW": {
+        "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "FaceTime 音訊快取的配置或數值與已驗證設定不符。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FaceTime 音訊快取的配置或數值與已驗證設定不符。"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bố cục hoặc giá trị bộ nhớ đệm âm thanh FaceTime không khớp cấu hình đã xác minh."
+            "value": "چیدمان یا مقادیر حافظهٔ نهان صدای FaceTime با نمایهٔ تأییدشده مطابقت ندارد."
           }
         },
         "ru": {
@@ -13475,16 +13413,27 @@
             "value": "Структура или значения кэша FaceTime Audio не соответствуют проверенному профилю."
           }
         },
-        "fa": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "چیدمان یا مقادیر حافظهٔ نهان صدای FaceTime با نمایهٔ تأییدشده مطابقت ندارد."
+            "value": "Bố cục hoặc giá trị bộ nhớ đệm âm thanh FaceTime không khớp cấu hình đã xác minh."
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊快取的配置或數值與已驗證設定不符。"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊快取的配置或數值與已驗證設定不符。"
           }
         }
       }
     },
     "The FaceTime Audio edit changes unrelated cache bytes.": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -13498,22 +13447,10 @@
             "value": "FaceTime 音频更改包含无关的缓存字节。"
           }
         },
-        "zh-Hant-TW": {
+        "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "FaceTime 音訊更改包含無關的快取位元組。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FaceTime 音訊更改包含無關的快取位元組。"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thay đổi âm thanh FaceTime chứa các byte bộ nhớ đệm không liên quan."
+            "value": "تغییر صدای FaceTime بایت‌های نامرتبط حافظهٔ نهان را تغییر می‌دهد."
           }
         },
         "ru": {
@@ -13522,16 +13459,27 @@
             "value": "Изменение FaceTime Audio затрагивает посторонние байты кэша."
           }
         },
-        "fa": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "تغییر صدای FaceTime بایت‌های نامرتبط حافظهٔ نهان را تغییر می‌دهد."
+            "value": "Thay đổi âm thanh FaceTime chứa các byte bộ nhớ đệm không liên quan."
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊更改包含無關的快取位元組。"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊更改包含無關的快取位元組。"
           }
         }
       }
     },
     "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call.": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -13545,22 +13493,10 @@
             "value": "FaceTime 音频标记已写入并验证。请重新启动 iPhone，再测试音频通话。"
           }
         },
-        "zh-Hant-TW": {
+        "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "FaceTime 音訊標記已寫入並驗證。請重新啟動 iPhone，再測試音訊通話。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FaceTime 音訊標記已寫入並驗證。請重新啟動 iPhone，再測試音訊通話。"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã ghi và xác minh các cờ âm thanh FaceTime. Hãy khởi động lại iPhone, rồi thử cuộc gọi âm thanh."
+            "value": "پرچم‌های صدای FaceTime نوشته و تأیید شدند. آیفون را راه‌اندازی مجدد و تماس صوتی را آزمایش کنید."
           }
         },
         "ru": {
@@ -13569,10 +13505,22 @@
             "value": "Флаги FaceTime Audio записаны и проверены. Перезагрузите iPhone и проверьте аудиовызов."
           }
         },
-        "fa": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "پرچم‌های صدای FaceTime نوشته و تأیید شدند. آیفون را راه‌اندازی مجدد و تماس صوتی را آزمایش کنید."
+            "value": "Đã ghi và xác minh các cờ âm thanh FaceTime. Hãy khởi động lại iPhone, rồi thử cuộc gọi âm thanh."
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊標記已寫入並驗證。請重新啟動 iPhone，再測試音訊通話。"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FaceTime 音訊標記已寫入並驗證。請重新啟動 iPhone，再測試音訊通話。"
           }
         }
       }

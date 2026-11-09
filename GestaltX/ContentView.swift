@@ -262,19 +262,31 @@ struct FaceTimeAudioPresetRow: View {
     var body: some View {
         switch support {
         case .success:
-            Picker("FaceTime Audio", selection: Binding(
-                get: { model.faceTimeAudioChoice },
-                set: { model.stageFaceTimeAudio($0) }
-            )) {
-                ForEach(FaceTimeAudioChoice.allCases) { choice in
-                    Text(choice.title).tag(choice)
+            VStack(alignment: .leading, spacing: 8) {
+                Picker(L("FaceTime Audio"), selection: Binding(
+                    get: { model.faceTimeAudioChoice },
+                    set: { model.stageFaceTimeAudio($0) }
+                )) {
+                    ForEach(FaceTimeAudioChoice.allCases) { choice in
+                        Text(choice.title).tag(choice)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("facetime-audio-choice")
+                HStack(alignment: .firstTextBaseline) {
+                    if model.faceTimeAudioChoice != .keep {
+                        Text(L("A device restart may be required.")).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 8)
+                    Button(L("Revert")) { Task { await model.restoreFaceTimeAudio() } }
+                        .font(.caption).buttonStyle(.borderless)
+                        .disabled(!model.canRestoreFaceTimeAudio)
+                        .accessibilityIdentifier("facetime-audio-revert")
                 }
             }
-            .pickerStyle(.menu)
-            .accessibilityIdentifier("facetime-audio-choice")
         case .failure(let error):
             VStack(alignment: .leading, spacing: 4) {
-                LabeledContent("FaceTime Audio") { Text("Unsupported").foregroundStyle(.secondary) }
+                LabeledContent(L("FaceTime Audio")) { Text(L("Unsupported")).foregroundStyle(.secondary) }
                 Text(error.localizedDescription).font(.caption).foregroundStyle(.secondary)
             }
         }

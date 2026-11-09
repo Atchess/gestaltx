@@ -116,18 +116,51 @@ final class GestaltManager: ObservableObject {
     }
 
     func stageFaceTimeAudio(_ choice: FaceTimeAudioChoice) {
-        guard var document = working, let original = snapshot?.document else { return }
+        guard !isBusy, var document = working, let snapshot else { return }
         do {
             let flags: FaceTimeAudioFlags
             switch choice {
-            case .keep: flags = try FaceTimeAudioCache.flags(in: original)
+            case .keep: flags = try FaceTimeAudioCache.flags(in: snapshot.document)
             case .enable: flags = .enabled
-            case .restoreRestriction: flags = .restricted
+            case .restoreOriginal: flags = try snapshot.originalFaceTimeAudioFlags()
             }
             try document.setFaceTimeAudio(flags)
             working = document
             faceTimeAudioChoice = choice
         } catch { failed(error) }
+    }
+
+    var canRestoreFaceTimeAudio: Bool {
+        guard !isBusy, let snapshot, let working,
+              let original = try? snapshot.originalFaceTimeAudioFlags(),
+              let current = try? FaceTimeAudioCache.flags(in: working) else { return false }
+        return faceTimeAudioChoice != .keep || current != original
+    }
+
+    func restoreFaceTimeAudio() async {
+        guard !isBusy, let before = snapshot, let pending = working else { return }
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            var restored = before.document
+            try restored.setFaceTimeAudio(before.originalFaceTimeAudioFlags())
+            let result: DocumentSnapshot
+            if restored.matches(before.document) {
+                result = before
+            } else {
+                logChanges(from: before.document, to: restored, prefix: "[restore-facetime] ")
+                result = try await files.commit(restored, expected: before)
+                needsRespring = result.source == .device
+                message = L(result.source == .device
+                            ? "FaceTime Audio flags written and verified. Restart the iPhone, then test an audio call."
+                            : "Local changes saved. Export the plist to keep a copy.")
+            }
+            snapshot = result
+            working = before.rebasingPendingEdits(pending, onto: result.document, excluding: [], preservingCacheData: false)
+            faceTimeAudioChoice = .keep
+            log("[restore-facetime] " + L("Original values restored."))
+            await reloadBackups()
+        } catch { failed(error); await reloadBackups() }
     }
 
     func canRestore(_ capability: Capability) -> Bool {

@@ -141,13 +141,110 @@ final class AccessTrace: @unchecked Sendable {
             throw TestFailure(message: "Commit must reject unrelated cache edits")
         } catch is GestaltFailure {}
         try expect(try Data(contentsOf: device) == originalBytes, "Rejected cache edits never reach the system writer")
+        // All valid Boolean pairs are possible baselines. Restoring must not
+        // manufacture the mainland restriction pair on an already-modified file.
+        let pairs = [FaceTimeAudioFlags.restricted, .enabled,
+                     FaceTimeAudioFlags(greenTea: false, notGreenTea: false),
+                     FaceTimeAudioFlags(greenTea: true, notGreenTea: true)]
+        for (index, flags) in pairs.enumerated() {
+            for mode in ["journal", "deleted-backups", "missing-journal", "legacy-journal"] {
+                let directory = root.appendingPathComponent("facetime-original-\(index)-" + mode)
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                let device = directory.appendingPathComponent("device.plist")
+                let backups = directory.appendingPathComponent("backups")
+                var baseline = original
+                try baseline.setFaceTimeAudio(flags)
+                try baseline.encoded().write(to: device)
+                func makeStore() -> GestaltFileStore {
+                    GestaltFileStore(deviceURL: device, backupDirectory: backups, deviceID: "audio-original-fixture",
+                                     acquire: { 1 }, release: { _ in })
+                }
+                let store = makeStore()
+                let initial = try await store.loadDevice()
+                try expect(initial.faceTimeAudioOriginal == nil, "Unknown history is not guessed")
+                try expect(initial.originalFaceTimeAudioFlags() == flags, "Unknown original uses the loaded baseline")
+                var changed = initial.document
+                // Ensure a real edit even when the input already has enabled flags.
+                try changed.setFaceTimeAudio(flags == .enabled ? .restricted : .enabled)
+                changed.set("committed", for: "other-field")
+                let applied = try await store.commit(changed, expected: initial)
+                try expect(applied.originalFaceTimeAudioFlags() == flags, "Commit records the actual original pair")
+                // Repeated changes must never replace the earliest recorded state.
+                var secondEdit = applied.document
+                try secondEdit.setFaceTimeAudio(FaceTimeAudioFlags(greenTea: !flags.greenTea, notGreenTea: !flags.notGreenTea))
+                let second = try await store.commit(secondEdit, expected: applied)
+                try expect(second.originalFaceTimeAudioFlags() == flags, "Repeated writes retain the first original")
+                let journal = backups.appendingPathComponent("OriginalValues.plist")
+                if mode == "deleted-backups" {
+                    for record in try await store.backups() { try await store.deleteBackup(record) }
+                } else if mode == "missing-journal" {
+                    try FileManager.default.removeItem(at: journal)
+                } else if mode == "legacy-journal" {
+                    var plist = try PropertyListSerialization.propertyList(from: Data(contentsOf: journal), options: [], format: nil) as! [String: Any]
+                    plist.removeValue(forKey: "faceTimeAudio")
+                    try PropertyListSerialization.data(fromPropertyList: plist, format: .binary, options: 0).write(to: journal)
+                }
+                let reopened = makeStore()
+                let loaded = try await reopened.loadDevice()
+                try expect(loaded.originalFaceTimeAudioFlags() == flags, "Reload and migration retain originals: " + mode)
+                if mode == "deleted-backups" {
+                    let recreated = try await reopened.backups().first!
+                    let saved = try GestaltDocument(data: await reopened.backupData(recreated))
+                    try expect(FaceTimeAudioCache.flags(in: saved) == flags, "Recreated initial backup contains saved original cache flags")
+                }
+                if mode == "missing-journal" || mode == "legacy-journal" {
+                    for record in try await reopened.backups() { try await reopened.deleteBackup(record) }
+                    let migrated = try await makeStore().loadDevice()
+                    try expect(migrated.originalFaceTimeAudioFlags() == flags, "Migrated originals remain after backups are deleted")
+                }
+                var pending = loaded.document
+                try pending.setFaceTimeAudio(.enabled)
+                pending.set("pending", for: "pending-field")
+                var restored = loaded.document
+                try restored.setFaceTimeAudio(loaded.originalFaceTimeAudioFlags())
+                let result = try await reopened.commit(restored, expected: loaded)
+                try expect(result.document.extra["other-field"] as? String == "committed", "One-cell restore leaves other applied fields intact")
+                let rebased = loaded.rebasingPendingEdits(pending, onto: result.document, excluding: [], preservingCacheData: false)
+                try expect(FaceTimeAudioCache.flags(in: rebased) == flags, "Reverting FaceTime discards only its staged cache edits")
+                try expect(rebased.extra["pending-field"] as? String == "pending", "Reverting FaceTime preserves unrelated pending edits")
+                let final = try await makeStore().loadDevice()
+                try expect(FaceTimeAudioCache.flags(in: final.document) == flags, "Exact original flags survive write and reopen")
+                var expected = baseline
+                expected.set("committed", for: "other-field")
+                try expect(final.document.matches(expected), "Restore touches only the two flag bytes")
+            }
+        }
+        let journal = root.appendingPathComponent("facetime-backups/OriginalValues.plist")
+        let intactJournal = try Data(contentsOf: journal)
+        var corruptJournal = try PropertyListSerialization.propertyList(from: intactJournal, options: [], format: nil) as! [String: Any]
+        corruptJournal["faceTimeAudio"] = Data([0, 1, 2])
+        try PropertyListSerialization.data(fromPropertyList: corruptJournal, format: .binary, options: 0).write(to: journal)
+        let beforeCorruptRead = try Data(contentsOf: device)
+        do {
+            _ = try await store.loadDevice()
+            throw TestFailure(message: "Malformed saved cache originals must block reading instead of being ignored")
+        } catch is GestaltFailure {}
+        try expect(try Data(contentsOf: device) == beforeCorruptRead, "A corrupt original record cannot modify the device")
+        try intactJournal.write(to: journal)
+        let local = try await store.loadLocal(data: originalBytes, name: "local-fixture")
+        let localEdit = try await store.commit(enabled, expected: local)
+        try expect(localEdit.originalFaceTimeAudioFlags() == .restricted, "Local sessions retain their own original flags")
+        let otherLocal = try await store.loadLocal(data: enabled.encoded(), name: "unrelated-local")
+        try expect(otherLocal.faceTimeAudioOriginal == nil && otherLocal.originalFaceTimeAudioFlags() == .enabled,
+                   "Newly opened files do not inherit another document's original flags")
+        var foreignLayout = fixture
+        foreignLayout["CacheUUID"] = "different-layout"
+        let savedOriginal = try FaceTimeAudioOriginal(document: original)
+        try expectThrows("Saved originals cannot be reused with another layout") {
+            _ = try savedOriginal.flags(in: document(foreignLayout))
+        }
         if let path = CommandLine.arguments.dropFirst().first {
             let url = URL(fileURLWithPath: path)
             let bytes = try Data(contentsOf: url)
             _ = try verifyOnlyTargetBytes(GestaltDocument(data: bytes))
             try expect(try Data(contentsOf: url) == bytes, "Actual exported plist remains byte-for-byte untouched")
         }
-        print("PASS: FaceTime Audio exact-byte edits, profile rejection, unrelated-byte preservation, CacheData-only commit, backup, restore, and read-only export verification.")
+        print("PASS: FaceTime Audio exact-byte edits, profile rejection, unrelated-byte preservation, CacheData-only commit, backup, durable original-value recovery, isolated revert, and read-only export verification.")
     }
 
     static func main() async throws {
